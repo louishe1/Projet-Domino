@@ -18,11 +18,11 @@ class Domino :
         self.gauche, self.droite = self.droite, self.gauche
         return(self)                                           #modifie le domino en l'inversant
 
-    def compatibles(self,other):
-        return(self.gauche == other.gauche
-               or self.droite == other.droite
-               or self.droite == other.gauche
-               or self.gauche == other.droite)                #verifie qu'une valeur est commune
+    #def compatibles(self,other):
+        #return(self.gauche == other.gauche
+               #or self.droite == other.droite
+               #or self.droite == other.gauche
+               #or self.gauche == other.droite)                #verifie qu'une valeur est commune
 
     def __str__(self):
         return f"[{self.gauche}|{self.droite}]"                #affiche un beau domino
@@ -40,7 +40,7 @@ class Plateau :
         elif len(self.dominos) == 1 :
             return(self.dominos[0], self.dominos[0])
         else :
-            return('ACOMPLETER CODE')# comment choisir les extremites
+            return(self.dominos[0],self.dominos[-1])# comment choisir les extremites
 
 
 
