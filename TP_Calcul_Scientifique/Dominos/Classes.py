@@ -39,7 +39,8 @@ class Plateau :
             print('rien sur le plateau')
         elif len(self.dominos) == 1 :
             return(self.dominos[0], self.dominos[0])
-        else                                                  # comment choisir les extremites
+        else :
+            return('ACOMPLETER CODE')# comment choisir les extremites
 
 
 
