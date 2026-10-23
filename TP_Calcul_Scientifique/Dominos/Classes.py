@@ -11,7 +11,7 @@ class Domino :
     def est_un_double(self):
         return(self.gauche == self.droite)
 
-    def valeur_domino(self):
+    def valeur(self):
         return(self.gauche + self.droite)                      #somme des valeurs
 
     def retourner(self):
@@ -43,16 +43,15 @@ class Plateau :
             return(self.dominos[0],self.dominos[-1])# comment choisir les extremites
 
 
-
-
     def jouer_domino_table(self, domino,cote):
-        if cote  == droite :
+        if cote  == "droite" :
             self.dominos.append(domino)
         else :
-            self.dominos.appendleft(domino)
-        return(self.dominos)
+            self.dominos.insert(0,domino)
+        return(self)
 
-
+    def __str__(self):
+        return " ".join(str(d) for d in self.dominos)
 
 
 
