@@ -45,8 +45,15 @@ class Plateau :
 
 
 
-    def jouer_domino_table(self, domino):
-        self.dominos.append(domino)
+    def jouer_domino_table(self, domino,cote):
+        if cote  == droite :
+            self.dominos.append(domino)
+        else :
+            self.dominos.appendleft(domino)
+        return(self.dominos)
+
+
+
 
 
 
