@@ -51,19 +51,9 @@ class Plateau :
 
 
     def jouer_domino_table(self, domino,cote):
-        if cote  == "droite" :
-            self.dominos.append(domino)
-        else :
-            self.dominos.insert(0,domino)
-        return(self)
-=======
-            return(self.Liste_gauche[-1],self.Liste_droite[-1])
-
-
-    def jouer_domino_table(self, domino,cote):
         if compatible(domino,self) == 0 :
-            self.dominos.append(retourner(domino))
-            self.Liste_gauche.append(retourner(domino))
+            self.dominos.append(Domino.retourner(domino))
+            self.Liste_gauche.append(Domino.retourner(domino))
         if compatible(domino,self) == 1 :
             self.dominos.append(domino)
             self.Liste_droite.append(domino)
@@ -71,15 +61,8 @@ class Plateau :
             self.dominos.append(domino)
             self.Liste_gauche.append(domino)
         if compatible(domino, self) == 1:
-            self.dominos.append(retourner(domino))
-            self.Liste_droite.append(retourner(domino))
-
-
-
-
-
-
->>>>>>> 5ecec7f (modif sur jouer_domino_table , extremites  et compatible)
+            self.dominos.append(Domino.retourner(domino))
+            self.Liste_droite.append(Domino.retourner(domino))
 
     def __str__(self):
         return " ".join(str(d) for d in self.dominos)
@@ -105,14 +88,12 @@ class Main:
             self.dominos.remove(domino)
             return True
         return False                                  #renvoie True si on peut le retirer et False sinon
-
-#    def dominos_jouables(self, plateau):
-
-        jouable = []
-        for d in self.dominos:
-            if d.compatibles(plateau.extremites()[0] or d.compatibles(plateau.extremites()[1]) :       # PLATEAU_EXTREMITES A DEFINIR COMME DOMINOS AUX EXTREMITES
-                jouable.append(d)
-        return jouable                            # Liste de dominos jouables
+def dominos_jouables(self, plateau):
+    jouable = []
+    for d in self.dominos:
+        if Domino.compatible(d,plateau) :       # PLATEAU_EXTREMITES A DEFINIR COMME DOMINOS AUX EXTREMITES
+            jouable.append(d)
+    return jouable                            # Liste de dominos jouables
 
     def utiliser(self, domino, plateau):
         if domino in dominos_jouables(self, plateau):
