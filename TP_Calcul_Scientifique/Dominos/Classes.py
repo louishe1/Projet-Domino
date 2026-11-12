@@ -47,7 +47,6 @@ class Plateau :
         if self.dominos == []:
             print('rien sur le plateau')
         else :
-<<<<<<< HEAD
             return(self.dominos[0],self.dominos[-1])# comment choisir les extremites
 
 
