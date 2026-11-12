@@ -50,17 +50,17 @@ class Plateau :
             return(self.dominos[0],self.dominos[-1])# comment choisir les extremites
 
 
-    def jouer_domino_table(self, domino,cote):
-        if compatible(domino,self) == 0 :
+    def jouer_domino_table(self, domino):
+        if Domino.compatible(domino,self) == 0 :
             self.dominos.append(Domino.retourner(domino))
             self.Liste_gauche.append(Domino.retourner(domino))
-        if compatible(domino,self) == 1 :
+        if Domino.compatible(domino,self) == 1 :
             self.dominos.append(domino)
             self.Liste_droite.append(domino)
-        if compatible(domino, self) == 0:
+        if Domino.compatible(domino, self) == 0:
             self.dominos.append(domino)
             self.Liste_gauche.append(domino)
-        if compatible(domino, self) == 1:
+        if Domino.compatible(domino, self) == 1:
             self.dominos.append(Domino.retourner(domino))
             self.Liste_droite.append(Domino.retourner(domino))
 
