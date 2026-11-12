@@ -19,13 +19,13 @@ class Domino :
         return(self)                                           #modifie le domino en l'inversant
 
     def compatible(self,plateau):
-        if self.gauche == extremites(plateau)[0] :
+        if self.gauche == Plateau.extremites(plateau)[0] :
             return(0)
-        if self.gauche == extremites(plateau)[1] :
+        if self.gauche == Plateau.extremites(plateau)[1] :
             return(1)
-        if self.droite == extremites(plateau)[0]:
+        if self.droite == Plateau.extremites(plateau)[0]:
             return(2)
-        if self.droite == extremites(plateau)[1]:
+        if self.droite == Plateau.extremites(plateau)[1]:
             return(3)
         else:
             print('non compatibles')
