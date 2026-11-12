@@ -18,11 +18,18 @@ class Domino :
         self.gauche, self.droite = self.droite, self.gauche
         return(self)                                           #modifie le domino en l'inversant
 
-    #def compatibles(self,other):
-        #return(self.gauche == other.gauche
-               #or self.droite == other.droite
-               #or self.droite == other.gauche
-               #or self.gauche == other.droite)                #verifie qu'une valeur est commune
+    def compatible(self,plateau):
+        if self.gauche == extremites(plateau)[0] :
+            return(0)
+        if self.gauche == extremites(plateau)[1] :
+            return(1)
+        if self.droite == extremites(plateau)[0]:
+            return(2)
+        if self.droite == extremites(plateau)[1]:
+            return(3)
+        else:
+            print('non compatibles')
+
 
     def __str__(self):
         return f"[{self.gauche}|{self.droite}]"                #affiche un beau domino
@@ -32,14 +39,15 @@ class Domino :
 
 class Plateau :
     def __init__(self):
-        self.dominos = []                             #simple liste vide
+        self.dominos = []                       #simple liste vide
+        self.Liste_gauche = []
+        self.Liste_droite = []
 
-    def extremites(self):                            # definir en revoyant une liste de 2 dominos
+    def extremites(self):
         if self.dominos == []:
             print('rien sur le plateau')
-        elif len(self.dominos) == 1 :
-            return(self.dominos[0], self.dominos[0])
         else :
+<<<<<<< HEAD
             return(self.dominos[0],self.dominos[-1])# comment choisir les extremites
 
 
@@ -49,6 +57,30 @@ class Plateau :
         else :
             self.dominos.insert(0,domino)
         return(self)
+=======
+            return(self.Liste_gauche[-1],self.Liste_droite[-1])
+
+
+    def jouer_domino_table(self, domino,cote):
+        if compatible(domino,self) == 0 :
+            self.dominos.append(retourner(domino))
+            self.Liste_gauche.append(retourner(domino))
+        if compatible(domino,self) == 1 :
+            self.dominos.append(domino)
+            self.Liste_droite.append(domino)
+        if compatible(domino, self) == 0:
+            self.dominos.append(domino)
+            self.Liste_gauche.append(domino)
+        if compatible(domino, self) == 1:
+            self.dominos.append(retourner(domino))
+            self.Liste_droite.append(retourner(domino))
+
+
+
+
+
+
+>>>>>>> 5ecec7f (modif sur jouer_domino_table , extremites  et compatible)
 
     def __str__(self):
         return " ".join(str(d) for d in self.dominos)
@@ -77,11 +109,11 @@ class Main:
 
 #    def dominos_jouables(self, plateau):
 
-#        jouable = []
-#        for d in self.dominos:
-#            if d.compatibles(plateau.extremites()[0] or d.compatibles(plateau.extremites()[1]) :       # PLATEAU_EXTREMITES A DEFINIR COMME DOMINOS AUX EXTREMITES
-#                jouable.append(d)
-#        return jouable                            # Liste de dominos jouables
+        jouable = []
+        for d in self.dominos:
+            if d.compatibles(plateau.extremites()[0] or d.compatibles(plateau.extremites()[1]) :       # PLATEAU_EXTREMITES A DEFINIR COMME DOMINOS AUX EXTREMITES
+                jouable.append(d)
+        return jouable                            # Liste de dominos jouables
 
     def utiliser(self, domino, plateau):
         if domino in dominos_jouables(self, plateau):
