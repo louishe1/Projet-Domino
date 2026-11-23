@@ -39,10 +39,11 @@ class Domino :
 class Plateau :
     def __init__(self):
         self.dominos = []                       #simple liste vide
-        self.Liste_gauche = []
-        self.Liste_droite = []
+
     def question_cote(self):
-        reponse  = input("voulez vous jouer à droite (1) ou à gauche (2) ?")
+        reponse = None
+        while reponse not in ["1","2"] :
+            reponse = input("voulez vous jouer à droite (1) ou à gauche (2) ?")
         return reponse
 
     def append_g(self,domino):
@@ -52,7 +53,7 @@ class Plateau :
         if self.dominos == []:
             return('rien sur le plateau')
         else :
-            return([self.Liste_gauche[-1].droite,self.Liste_droite[-1].droite])# comment choisir les extremites
+            return [self.dominos[0].gauche, self.dominos[-1].droite]# comment choisir les extremites
 
     def compatible(self, domino):
         ext = self.extremites()
@@ -81,27 +82,19 @@ class Plateau :
     def jouer_domino_table(self, domino):
         comp = self.compatible(domino)
         P = self.dominos
-        G = self.Liste_gauche
-        D = self.Liste_droite
         question = 0
         if comp in [4,5,6,7] :
             question = self.question_cote()
         if comp ==-1  :
             P.append(domino)
-            D.append(domino)
-            G.append(domino.retourner())
         elif comp == 0 or (comp == 4 and question == "2") or (comp == 6 and question =="2"): #placement de la partie gauche du domino à gauche du plateau
             self.append_g(domino.retourner())
-            G.append(domino)
         elif comp == 1 or (comp == 5 and question == "1") or (comp == 6 and question == "1"): #placement de la partie gauche du domino à droite du plateau
             P.append(domino)
-            D.append(domino)
         elif comp == 2 or (comp == 5 and question == "2") or (comp == 7 and question == "2"): #placement de la partie droite du domino à gauche du plateau
             self.append_g(domino)
-            G.append(domino.retourner())
         elif comp == 3 or (comp == 4 and question == "1") or (comp == 7 and question == "1" ) : #placement de la partie droite du domino à droite du plateau
             P.append(domino.retourner())
-            D.append(domino.retourner())
 
     def __str__(self):
         return " ".join(str(d) for d in self.dominos)
@@ -168,6 +161,18 @@ class Main:
                 return True
         return False
 
+    def taille(self):
+        return len(self.liste)
+
+    def ajout(self,domino):
+        self.liste.append(domino)
+
+    def initialisation(self,pioche,M):
+        for i in range(M):
+            x = pioche.piocher_rdm()
+            self.ajout(x)
+
+
 ############################################### CLASSE PIOCHE ###############################################
 #############################################################################################################
 
@@ -197,6 +202,7 @@ class Pioche:
             return False
 
     def piocher_rdm(self):
-        i = random.randint(0,len(self.liste)-1)
-        return(self.liste[i])
-
+        if self.est_vide():
+            return "pioche vide "
+        i = random.randint(0, len(self.liste) - 1)
+        return self.liste.pop(i)
