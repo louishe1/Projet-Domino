@@ -1,5 +1,5 @@
 from scipy.stats import quantile_test
-
+import random
 
 ########################################### CLASSE DOMINO #####################################################
 ###############################################################################################################
@@ -9,6 +9,11 @@ class Domino :
     def __init__(self, gauche,droite):
         self.gauche = gauche
         self.droite = droite
+
+    def __eq__(self, other):
+        if not isinstance(other, Domino):
+            return False
+        return self.gauche == other.gauche and self.droite == other.droite
 
     def est_un_double(self):
         return(self.gauche == self.droite)
@@ -22,6 +27,7 @@ class Domino :
     def __repr__(self):
         # Utilisé dès qu'un Domino se trouve dans une liste : print(liste_dominos)
         return self.__str__()
+
 
 
     def __str__(self):
@@ -69,7 +75,8 @@ class Plateau :
         elif domino.droite == ext[1]:
             return(3)
         else:
-            print("domino injouable")
+            #print("domino injouable")
+            return("domino injouable")
 
     def jouer_domino_table(self, domino):
         comp = self.compatible(domino)
@@ -106,34 +113,90 @@ class Plateau :
 
 class Main:
     def __init__(self):
-        self.dominos = []                             #simple liste vide (idem que plateau)
+        self.liste = []                             #simple liste vide (idem que plateau)
 
+    def __str__(self) -> str:
+        return " ".join(str(d) for d in self.liste)
+
+    def __repr__(self) -> str:
+        return self.__str__()
     def piocher(self, domino):
-        self.dominos.append(domino)                   #c'est ecrit
+        self.liste.append(domino)                   #c'est ecrit
 
     def question_domino(self):
         reponse = input("quelle domino voulez vous jouer ?")
         return reponse
 
     def retirer(self, domino):
-        if domino in self.dominos:
-            self.dominos.remove(domino)
+        if domino in self.liste:
+            self.liste.remove(domino)
             return True
         return False                                  #renvoie True si on peut le retirer et False sinon
+
+
     def dominos_jouables(self, plateau):
         jouable = []
-        for d in self.dominos:
-            if plateau.compatible(d) is not None :       # PLATEAU_EXTREMITES A DEFINIR COMME DOMINOS AUX EXTREMITES
+        for d in self.liste:
+            if plateau.compatible(d) !=  "domino injouable"  :       # PLATEAU_EXTREMITES A DEFINIR COMME DOMINOS AUX EXTREMITES
                 jouable.append(d)
-        return jouable                            # Liste de dominos jouables
+        return jouable
 
-    #def utiliser(self, domino, plateau):
-        #if domino in dominos_jouables(self, plateau):
-            #self.dominos.remove(domino)
-            #return True
-        #return False                           #on verifie qu'on peut le jouer et on le retire de la main
+    def afficher_main(self):
+        return "[" + ", ".join(f"{elt} ({i})" for i, elt in enumerate(self.liste)) + "]"
 
-    #def __str__(self):
-        #if self.dominos == []:
-            #return "Main vide gg bg"
-        #return " ".join(str(d) for d in self.dominos)    # Affiche les dominos séparé par un espace
+    def numeros_jouables(self,plateau):
+        L = []
+        for i,d in enumerate(self.liste):
+            for j in self.dominos_jouables(plateau):
+                if d == j:
+                    L.append(i)
+        return L
+
+    def test_contenant(self):
+        if self.liste == []:
+            return True
+        else:
+            return False
+
+    def test_famille(self):
+        for i in range(1,6):
+            c = 0
+            for d in self.liste :
+                if d.gauche == i or d.droite == i :
+                    c+=1
+            if c>=5 :
+                return True
+        return False
+
+############################################### CLASSE PIOCHE ###############################################
+#############################################################################################################
+
+class Pioche:
+
+    def __init__(self):
+        self.liste = []
+
+    def __str__(self) -> str:
+        return " ".join(str(d) for d in self.liste)
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def ajout(self,domino):
+        self.liste.append(domino)
+
+    def remplir(self,P =6):
+        for i in range(P+1):
+            for j in range(i,P+1) :
+                self.ajout(Domino(i,j))
+
+    def est_vide(self):
+        if self.liste == []:
+            return True
+        else:
+            return False
+
+    def piocher_rdm(self):
+        i = random.randint(0,len(self.liste)-1)
+        return(self.liste[i])
+
