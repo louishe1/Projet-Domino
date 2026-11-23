@@ -89,6 +89,8 @@ def premier_joueur(D) :
 
 def ia_aleatoire(main_ia,PLATEAU) :
     JOUABLES = main_ia.numeros_jouables(PLATEAU)
+    if len(JOUABLES) == 0 :
+        return(-1)                              # retourne -1 si elle doit piocher
     R =  random.randint(0,len(JOUABLES)-1)
     return(JOUABLES[R])
 
@@ -102,6 +104,8 @@ def max_glouton(L):
 
 def ia_gloutonne(main_ia,PLATEAU) :
     JOUABLES = main_ia.dominos_jouables(PLATEAU)
+    if len(JOUABLES) == 0 :
+        return(-1)
     R = main_ia.numeros_jouables(PLATEAU)[max_glouton(JOUABLES)]
     return(R)
 
