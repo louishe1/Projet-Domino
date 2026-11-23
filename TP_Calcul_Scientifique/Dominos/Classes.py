@@ -121,11 +121,7 @@ class Main:
         return reponse
 
     def retirer(self, domino):
-        if domino in self.liste:
-            self.liste.remove(domino)
-            return True
-        return False                                  #renvoie True si on peut le retirer et False sinon
-
+        self.liste.remove(domino)
 
     def dominos_jouables(self, plateau):
         jouable = []
