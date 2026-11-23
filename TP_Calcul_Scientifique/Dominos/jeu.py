@@ -74,14 +74,14 @@ def premier_joueur(D) :
             JOUEUR = l
             DOMINO_MAX = maximum(D[l])
     if MAXI >= 0:
-        return(JOUEUR,DOMINO_MAX)
+        return([JOUEUR,DOMINO_MAX])
     else :
         for l in D.keys() :
             if Domino.valeur(maximum(D[l])) > MAXI :
                 MAXI = Domino.valeur(maximum(D[l]))
                 JOUEUR = l
                 DOMINO_MAX = maximum(D[l])
-        return(JOUEUR,DOMINO_MAX)
+        return([JOUEUR,DOMINO_MAX])
 
 #print(PIOCHE)
 #print(DICO_MAINS)
@@ -109,3 +109,19 @@ def ia_gloutonne(main_ia,PLATEAU) :
     R = main_ia.numeros_jouables(PLATEAU)[max_glouton(JOUABLES)]
     return(R)
 
+################# IA MINMAX A CREER ###################"
+
+############### fonction qui prend la MAIN,PLATEAU et un indice de JOUABLES
+# defini par les fonction ci dessus pour les IA et qui joue le Domino ##########
+
+############# fonction qui montre sa main et ses jouables et le plateau au joueur
+# et qui joue
+# le domino choisi sur le coté choisi ######################
+
+PLATEAU = Plateau()
+
+JOUEUR_ACTIF = premier_joueur(DICO_MAINS)[0]               # donne celui qui commence
+PLATEAU.jouer_domino_table(premier_joueur(DICO_MAINS)[1])  #oblige a jouer le premier coup
+
+COMPTEUR_DIMPOSSIBILITE = 0   # incrementé si qqn ne peut ni jouer ni piocher sinon remit a zero
+LISTE_JOUEUR_ACTIF = [Domino(-1,-1)]   # sert a verifier si la liste du joueur actif est vide
