@@ -4,6 +4,7 @@ from Classes import Main
 from Classes import Pioche
 from Classes import Domino
 from Classes import Plateau
+import random
 
 
 def plus_grand_numero () :
@@ -82,13 +83,25 @@ def premier_joueur(D) :
                 DOMINO_MAX = maximum(D[l])
         return(JOUEUR,DOMINO_MAX)
 
+#print(PIOCHE)
+#print(DICO_MAINS)
+#print(premier_joueur(DICO_MAINS))
 
+def ia_aleatoire(main_ia,PLATEAU) :
+    JOUABLES = main_ia.numeros_jouables(PLATEAU)
+    R =  random.randint(0,len(JOUABLES)-1)
+    return(JOUABLES[R])
 
+def max_glouton(L):
+    c, indice = -1, -1
+    for j in range(len(L)):
+        if Domino.valeur(L[j]) > c:
+            c = Domino.valeur(L[j])
+            indice = j
+    return(indice)
 
-
-
-
-
-
-
+def ia_gloutonne(main_ia,PLATEAU) :
+    JOUABLES = main_ia.dominos_jouables(PLATEAU)
+    R = main_ia.numeros_jouables(PLATEAU)[max_glouton(JOUABLES)]
+    return(R)
 
