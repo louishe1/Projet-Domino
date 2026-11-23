@@ -7,7 +7,7 @@ from Classes import Plateau
 
 
 def plus_grand_numero () :
-    return( int( input("Donner le chiffre entier maximal sur les dominos.") ) )
+    return( int( input("Donner le chiffre entier positif maximal sur les dominos.") ) )
 
 def nb_participants() :
     N = int(input("Combien de participants dans cette partie (joueurs ou IA) entre 2 et 4"))
@@ -42,9 +42,13 @@ PIOCHE = Pioche()
 PIOCHE.remplir(P)
 
 DICO_MAINS = {}
-for i in range(N) :
+
+for i in range(X) :
     DICO_MAINS[f"Joueur_{i}"] = Main()
-    DICO_MAINS[f"Joueur_{i}"].initialisation(PIOCHE,M)  # EVENTUELLEMENT ADAPTER X JOUEUR ET N-X IA
+    DICO_MAINS[f"Joueur_{i}"].initialisation(PIOCHE,M)
+for i in range(N-X) :
+    DICO_MAINS[f"IA_{i}"] = Main()
+    DICO_MAINS[f"IA_{i}"].initialisation(PIOCHE,M)
 
 def maximum(Main) :
     c, d = -2 , Domino(-1,-1)
