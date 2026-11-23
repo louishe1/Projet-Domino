@@ -6,6 +6,8 @@ from Classes import Domino
 from Classes import Plateau
 import random
 
+from TP_Calcul_Scientifique.Dominos.Classes import Plateau
+
 
 def plus_grand_numero () :
     return( int( input("Donner le chiffre entier positif maximal sur les dominos.") ) )
@@ -117,6 +119,26 @@ def ia_gloutonne(main_ia,PLATEAU) :
 ############# fonction qui montre sa main et ses jouables et le plateau au joueur
 # et qui joue
 # le domino choisi sur le coté choisi ######################
+def jeu_joueur(MAIN,PLATEAU) :
+    print("*********************************************************")
+    print("Plateau :   ", PLATEAU)
+    print("Main :   ", MAIN.afficher_main())
+    print("Numéros des dominos jouables:   ",MAIN.numeros_jouables(PLATEAU))
+    indice  = int(input("entrer le numéro du domino que vous voulez jouer : "))
+    PLATEAU.jouer_domino_table(MAIN.liste[indice])
+    MAIN.retirer(MAIN.liste[indice])
+
+def jeu_IA(MAIN,PLATEAU,MODE_IA) :
+    indice = 0
+    if MODE_IA == 0 :
+        indice = ia_aleatoire(MAIN,PLATEAU)
+    elif MODE_IA == 1 :
+        indice = ia_gloutonne(MAIN,PLATEAU)
+    #### à rajouter : ia minmax
+    PLATEAU.jouer_domino_table(MAIN.liste[indice])
+    MAIN.retirer(MAIN.liste[indice])
+
+
 
 PLATEAU = Plateau()
 
