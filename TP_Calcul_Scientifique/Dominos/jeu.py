@@ -131,10 +131,15 @@ def jeu_joueur(MAIN,PLATEAU,PIOCHE) :
         domino_choisi = MAIN.liste[indice]
         PLATEAU.jouer_domino_table(domino_choisi)
         MAIN.retirer(domino_choisi)
+        return("ok")
     elif len(PIOCHE) > 0:
         print("Aucun domino jouable, vous piochez !")
         domino_pioche = PIOCHE.piocher_rdm()
         MAIN.piocher(domino_pioche)
+        return("ok")
+    else :
+        print("Aucun domino jouable, vous passez votre tour !")
+        return(-1)
 
 
 def jeu_IA(MAIN,PLATEAU,MODE_IA,PIOCHE) :
@@ -156,11 +161,16 @@ def jeu_IA(MAIN,PLATEAU,MODE_IA,PIOCHE) :
         domino_choisi = MAIN.liste[indice]
         PLATEAU.jouer_domino_table(domino_choisi)
         MAIN.retirer(domino_choisi)
+        return("ok")
 
     elif not PIOCHE.est_vide():
         print("L'IA pioche.")
         domino_pioche = PIOCHE.piocher_rdm()
-        MAIN.piocher(domino_pioche)
+        MAIN.piocher(domino_pioche
+        return("ok")
+    else :
+        print("L'IA passe son tour.")
+        return(-1)
 
 
 PLATEAU = Plateau()
