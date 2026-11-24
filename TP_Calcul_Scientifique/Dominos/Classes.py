@@ -79,7 +79,7 @@ class Plateau :
             #print("domino injouable")
             return("domino injouable")
 
-    def jouer_domino_table(self, domino):
+    def jouer_domino_table_humain(self, domino):
         comp = self.compatible(domino)
         P = self.dominos
         question = 0
@@ -95,6 +95,66 @@ class Plateau :
             self.append_g(domino)
         elif comp == 3 or (comp == 4 and question == "1") or (comp == 7 and question == "1" ) : #placement de la partie droite du domino à droite du plateau
             P.append(domino.retourner())
+
+    def cloner(self):
+        copie = Plateau()
+        copie.dominos = [Domino(d.gauche, d.droite) for d in self.dominos]
+        return copie
+
+    def jouer_domino_table_ia(self, domino,type):
+        comp = self.compatible(domino)
+        P = self.dominos
+        question = 0
+        if comp in [4,5,6,7] :
+            if type == 2:
+                # Choix stratégique du côté pour MinMax :
+                # compare l'effet d'une pose à droite ("1") ou à gauche ("2") sur une copie du plateau
+                meilleur_cote = "1"
+                meilleur_score_ext = float("inf")
+                for cote_test in ("1", "2"):
+                    p_test = Plateau()
+                    p_test.dominos = [Domino(d.gauche, d.droite) for d in self.dominos]
+                    pt_test = p_test.dominos
+
+                    if comp == 4 and cote_test == "2":
+                        p_test.append_g(domino.retourner())
+                    elif comp == 5 and cote_test == "1":
+                        pt_test.append(domino)
+                    elif comp == 5 and cote_test == "2":
+                        p_test.append_g(domino)
+                    elif comp == 6 and cote_test == "2":
+                        p_test.append_g(domino.retourner())
+                    elif comp == 6 and cote_test == "1":
+                        pt_test.append(domino)
+                    elif comp == 7 and cote_test == "2":
+                        p_test.append_g(domino)
+                    elif comp == 7 and cote_test == "1":
+                        pt_test.append(domino.retourner())
+                    elif comp == 4 and cote_test == "1":
+                        pt_test.append(domino.retourner())
+
+                    exts = p_test.extremites()
+                    # Favorise des extrémités basses pour limiter les gros points adverses
+                    score_ext = exts[0] + exts[1] if isinstance(exts, list) else 0
+                    if score_ext < meilleur_score_ext:
+                        meilleur_score_ext = score_ext
+                        meilleur_cote = cote_test
+
+                question = meilleur_cote
+            if type in [0,1] :
+                question = str(random.randint(1, 2))
+        elif comp ==-1  :
+            P.append(domino)
+        elif comp == 0 or (comp == 4 and question == "2") or (comp == 6 and question =="2"): #placement de la partie gauche du domino à gauche du plateau
+            self.append_g(domino.retourner())
+        elif comp == 1 or (comp == 5 and question == "1") or (comp == 6 and question == "1"): #placement de la partie gauche du domino à droite du plateau
+            P.append(domino)
+        elif comp == 2 or (comp == 5 and question == "2") or (comp == 7 and question == "2"): #placement de la partie droite du domino à gauche du plateau
+            self.append_g(domino)
+        elif comp == 3 or (comp == 4 and question == "1") or (comp == 7 and question == "1" ) : #placement de la partie droite du domino à droite du plateau
+            P.append(domino.retourner())
+
+
 
     def __str__(self):
         return " ".join(str(d) for d in self.dominos)
