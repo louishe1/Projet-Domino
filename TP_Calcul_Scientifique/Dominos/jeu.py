@@ -361,6 +361,8 @@ while COMPTEUR_DIMPOSSIBILITE < N and len(main_actuelle_liste) != 0 :
     main_actuelle = DICO_MAINS[nom_joueur]
     main_actuelle_liste = DICO_MAINS[nom_joueur].liste
 
+    print(f"Il reste {len(main_actuelle_liste)} dominos à {nom_joueur}.")
+
     tour += 1
 
 print("************* MAINS EN FIN DE PARTIE **************")
