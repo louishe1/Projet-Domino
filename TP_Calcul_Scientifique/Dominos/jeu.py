@@ -34,22 +34,8 @@ def nb_dominos_par_personnes(n) :
     if n == 4 :
         return(6)
 
-P = plus_grand_numero()
-N,X = nb_participants()
-L = liste_type_IA(N-X)
-M = nb_dominos_par_personnes(N)   # parametres globaux du jeu
 
-PIOCHE = Pioche()
-PIOCHE.remplir(P)
 
-DICO_MAINS = {}
-
-for i in range(X) :
-    DICO_MAINS[f"Joueur_{i}"] = Main()
-    DICO_MAINS[f"Joueur_{i}"].initialisation(PIOCHE,M)
-for i in range(N-X) :
-    DICO_MAINS[f"IA_{i}"] = Main()
-    DICO_MAINS[f"IA_{i}"].initialisation(PIOCHE,M)
 
 def maximum(Main) :
     c, d = -2 , Domino(-1,-1)
@@ -275,7 +261,12 @@ def jeu_joueur(MAIN,PLATEAU,PIOCHE) :
     print("*********************************************************")
 
     if len(jouables) > 0:
-        indice = int(input("Entrer le numéro du domino que vous voulez jouer : "))
+        indice = -1
+        while indice not in jouables:
+            try:
+                indice = int(input("Entrer le numéro du domino que vous voulez jouer : "))
+            except ValueError:
+                print("Entrez un numéro valide.")
         domino_choisi = MAIN.liste[indice]
         PLATEAU.jouer_domino_table_humain(domino_choisi)
         MAIN.retirer(domino_choisi)
@@ -317,67 +308,6 @@ def jeu_IA(MAIN,PLATEAU,MODE_IA,PIOCHE) :
         print("L'IA passe son tour.")
         return(-1)
 
-
-PLATEAU = Plateau()
-
-JOUEUR_DEPART = premier_joueur(DICO_MAINS)[0]               # donne celui qui commence
-PLATEAU.jouer_domino_table_humain(premier_joueur(DICO_MAINS)[1])  #oblige a jouer le premier coup
-DICO_MAINS[JOUEUR_DEPART].retirer(premier_joueur(DICO_MAINS)[1])
-
-COMPTEUR_DIMPOSSIBILITE = 0   # incrementé si qqn ne peut ni jouer ni piocher sinon remit a zero
-main_actuelle_liste = [Domino(-1,-1)]   # sert a verifier si la liste du joueur actif est vide
-
-ordre_joueurs = list(DICO_MAINS.keys())
-index_depart = ordre_joueurs.index(JOUEUR_DEPART)
-
-
-tour = 1  # on a forcé le joueur de depart a jouer
-
-while COMPTEUR_DIMPOSSIBILITE < N and len(main_actuelle_liste) != 0 :
-
-    index_actuel = (index_depart + tour) % len(ordre_joueurs)  #index va de 0 à N-1
-    nom_joueur = ordre_joueurs[index_actuel]
-    main_actuelle = DICO_MAINS[nom_joueur]
-    main_actuelle_liste = DICO_MAINS[nom_joueur].liste #en liste pour condition d'arret
-
-    print(f"*** TOUR DE {nom_joueur} ***")
-
-    ################  TOUR DE JEU IA OU HUMAIN ###############
-
-    if nom_joueur.startswith("Joueur"):             # Logique pour faire jouer un humain
-        Y = jeu_joueur(main_actuelle,PLATEAU,PIOCHE)
-        if Y == "ok" :
-            COMPTEUR_DIMPOSSIBILITE = 0
-        else :
-            COMPTEUR_DIMPOSSIBILITE += 1
-
-    else:                                           # Logique automatique pour l'IA
-        Y = jeu_IA(main_actuelle, PLATEAU, L[index_actuel-X], PIOCHE)
-        if Y == "ok":
-            COMPTEUR_DIMPOSSIBILITE = 0
-        else:
-            COMPTEUR_DIMPOSSIBILITE += 1
-
-    main_actuelle = DICO_MAINS[nom_joueur]
-    main_actuelle_liste = DICO_MAINS[nom_joueur].liste
-
-    print(f"Il reste {len(main_actuelle_liste)} dominos à {nom_joueur}.")
-
-    tour += 1
-
-print("************* MAINS EN FIN DE PARTIE **************")
-print(DICO_MAINS)
-
-DICO_SCORE = {}
-for k in DICO_MAINS.keys():
-    DICO_SCORE[k] = 0
-    for j in range(  len( DICO_MAINS[k].liste )  ):
-        DICO_SCORE[k] += Domino.valeur( DICO_MAINS[k].liste[j] )
-
-print("************* SCORES EN FIN DE PARTIE **************")
-print(DICO_SCORE)
-
-
 def plus_petites_cles(dico):
     cles_min = []
     val_min = float('inf')
@@ -391,10 +321,85 @@ def plus_petites_cles(dico):
 
     return cles_min
 
-print("*********************************************************")
-if len(main_actuelle_liste) == 0 :
-    print(f"FIN DE PARTIE, {nom_joueur} a gagné !")
-else:
-    print(f"FIN DE PARTIE, {plus_petites_cles(DICO_SCORE)} a gagné !")
+
+if __name__ == "__main__":
+    P = plus_grand_numero()
+    N, X = nb_participants()
+    L = liste_type_IA(N - X)
+    M = nb_dominos_par_personnes(N)
+
+    PIOCHE = Pioche()
+    PIOCHE.remplir(P)
+
+    DICO_MAINS = {}
+    for i in range(X):
+        DICO_MAINS[f"Joueur_{i}"] = Main()
+        DICO_MAINS[f"Joueur_{i}"].initialisation(PIOCHE, M)
+    for i in range(N - X):
+        DICO_MAINS[f"IA_{i}"] = Main()
+        DICO_MAINS[f"IA_{i}"].initialisation(PIOCHE, M)
+
+    PLATEAU = Plateau()
+
+    JOUEUR_DEPART = premier_joueur(DICO_MAINS)[0]
+    PLATEAU.jouer_domino_table_humain(premier_joueur(DICO_MAINS)[1])
+    DICO_MAINS[JOUEUR_DEPART].retirer(premier_joueur(DICO_MAINS)[1])
+
+    COMPTEUR_DIMPOSSIBILITE = 0
+    main_actuelle_liste = [Domino(-1, -1)]
+
+    ordre_joueurs = list(DICO_MAINS.keys())
+    index_depart = ordre_joueurs.index(JOUEUR_DEPART)
+
+    tour = 1
+
+    while COMPTEUR_DIMPOSSIBILITE < N and len(main_actuelle_liste) != 0:
+
+        index_actuel = (index_depart + tour) % len(ordre_joueurs)
+        nom_joueur = ordre_joueurs[index_actuel]
+        main_actuelle = DICO_MAINS[nom_joueur]
+        main_actuelle_liste = DICO_MAINS[nom_joueur].liste
+
+        print(f"*** TOUR DE {nom_joueur} ***")
+
+        if nom_joueur.startswith("Joueur"):
+            Y = jeu_joueur(main_actuelle, PLATEAU, PIOCHE)
+            if Y == "ok":
+                COMPTEUR_DIMPOSSIBILITE = 0
+            else:
+                COMPTEUR_DIMPOSSIBILITE += 1
+
+        else:
+            index_ia = int(nom_joueur.split("_")[1])
+            Y = jeu_IA(main_actuelle, PLATEAU, L[index_ia], PIOCHE)
+            if Y == "ok":
+                COMPTEUR_DIMPOSSIBILITE = 0
+            else:
+                COMPTEUR_DIMPOSSIBILITE += 1
+
+        main_actuelle = DICO_MAINS[nom_joueur]
+        main_actuelle_liste = DICO_MAINS[nom_joueur].liste
+
+        print(f"Il reste {len(main_actuelle_liste)} dominos à {nom_joueur}.")
+
+        tour += 1
+
+    print("************* MAINS EN FIN DE PARTIE **************")
+    print(DICO_MAINS)
+
+    DICO_SCORE = {}
+    for k in DICO_MAINS.keys():
+        DICO_SCORE[k] = 0
+        for j in range(len(DICO_MAINS[k].liste)):
+            DICO_SCORE[k] += Domino.valeur(DICO_MAINS[k].liste[j])
+
+    print("************* SCORES EN FIN DE PARTIE **************")
+    print(DICO_SCORE)
+
+    print("*********************************************************")
+    if len(main_actuelle_liste) == 0:
+        print(f"FIN DE PARTIE, {nom_joueur} a gagné !")
+    else:
+        print(f"FIN DE PARTIE, {plus_petites_cles(DICO_SCORE)} a gagné !")
 
 
