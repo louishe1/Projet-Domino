@@ -8,23 +8,23 @@ import random
 
 
 def plus_grand_numero () :
-    return( int( input("Donner le chiffre entier positif maximal sur les dominos.") ) )
+    return( int( input("Donner le chiffre entier positif maximal sur les dominos : ") ) )
 
 def nb_participants() :
-    N = int(input("Combien de participants dans cette partie (joueurs ou IA) entre 2 et 4"))
+    N = int(input("Combien de participants dans cette partie (joueurs ou IA) entre 2 et 4 : "))
     while N not in [2,3,4] :
-        N = int(input("Recommencez avec un entier entre 2 et 4"))
-    X = int(input("Combien de joueurs humains"))
+        N = int(input("Recommencez avec un entier entre 2 et 4 : "))
+    X = int(input("Combien de joueurs humains : "))
     while X not in [0, 1, 2, 3, 4] or X > N:
-        X = int(input("Recommencez avec un entier valide inférieur au nombre de participants"))
+        X = int(input("Recommencez avec un entier valide inférieur au nombre de participants : "))
     return(N,X)
 
 def liste_type_IA(r) : #r est le nb d'ia
     c,L = -1,[]
     for i in range(r) :
-        c = int(input("Choisissez le type d'IA : tapez 0 pour l'IA aléatoire, tapez 1 pour l'IA gloutonne ou tapez 2 pour l'IA minmax"))
+        c = int(input("Choisissez le type d'IA : tapez 0 pour l'IA aléatoire, tapez 1 pour l'IA gloutonne ou tapez 2 pour l'IA minmax : "))
         while c != 0 and c != 1 and c != 2 :
-            c = int(input("Recommencez avec 0,1 ou 2."))
+            c = int(input("Recommencez avec 0,1 ou 2 :"))
         L.append(c)
     return(L)               #liste des r modes d'IA
 
@@ -111,21 +111,26 @@ def ia_gloutonne(main_ia,PLATEAU) :
     return(R)
 
 ################# IA MINMAX A CREER ###################"
-def _evaluer_etat_minmax(main_ia_liste, adv_taille, pioche_vide, a_des_coups_ia):
-    # +inf si l'IA vide sa main, -inf si l'adversaire vide la sienne
+
+def _evaluer_etat_minmax(main_ia_liste, adv_taille, pioche_vide, indices_ia):
     if len(main_ia_liste) == 0:
         return float("inf")
     if adv_taille <= 0:
         return float("-inf")
 
     score_main = sum(d.valeur() for d in main_ia_liste)
-    val = -float(score_main)
-    if not a_des_coups_ia and pioche_vide:
-        val -= 10.0
+    nb_coups_jouables = len(indices_ia)
+
+    val = -float(score_main) + 5.0 * nb_coups_jouables
+
+    if nb_coups_jouables == 0 and pioche_vide:
+        val -= 15.0
+
     return val
 
 
 def _simuler_coup_minmax(plateau, domino):
+    # Problème 1 : simulation stricte avec mode=2, identique à jeu_IA
     if plateau.compatible(domino) == "domino injouable":
         return None
     p_sim = Plateau()
@@ -134,44 +139,37 @@ def _simuler_coup_minmax(plateau, domino):
     return p_sim
 
 
-def _dominos_adverses_supposes(main_ia_liste, plateau, pioche, limite=6):
+def _dominos_adverses_supposes(main_ia_liste, plateau, limite=10):
     connus = {(min(d.gauche, d.droite), max(d.gauche, d.droite)) for d in main_ia_liste}
     for d in plateau.dominos:
         connus.add((min(d.gauche, d.droite), max(d.gauche, d.droite)))
 
-    supposes = []
-    if pioche is not None and hasattr(pioche, "liste"):
-        for d in pioche.liste:
-            paire = (min(d.gauche, d.droite), max(d.gauche, d.droite))
-            if paire not in connus:
-                supposes.append(d)
-                if len(supposes) >= limite:
-                    return supposes
-
     max_val = P if "P" in globals() else 6
+    inconnus = []
     for a in range(max_val + 1):
         for b in range(a, max_val + 1):
             if (a, b) not in connus:
-                supposes.append(Domino(a, b))
-                if len(supposes) >= limite:
-                    return supposes
-    return supposes
+                inconnus.append(Domino(a, b))
+
+    if len(inconnus) > limite:
+        random.shuffle(inconnus)
+        return inconnus[:limite]
+    return inconnus
 
 
-def _minmax_recursif(main_ia_liste, plateau, pioche_vide, profondeur, est_tour_ia, adv_taille, pioche):
+def _minmax_recursif(main_ia_liste, plateau, pioche_vide, profondeur, est_tour_ia, adv_taille):
     main_temp = Main()
     main_temp.liste = main_ia_liste
     indices_ia = main_temp.numeros_jouables(plateau)
-    a_des_coups_ia = len(indices_ia) > 0
 
     if profondeur == 0 or len(main_ia_liste) == 0 or adv_taille <= 0:
-        return _evaluer_etat_minmax(main_ia_liste, adv_taille, pioche_vide, a_des_coups_ia)
+        return _evaluer_etat_minmax(main_ia_liste, adv_taille, pioche_vide, indices_ia)
 
     if est_tour_ia:
-        if not a_des_coups_ia:
-            prochaine_pioche_vide = True if not pioche_vide else pioche_vide
-            return _minmax_recursif(
-                main_ia_liste, plateau, prochaine_pioche_vide, profondeur - 1, False, adv_taille, pioche
+        if len(indices_ia) == 0:
+            malus_pioche = 0.0 if pioche_vide else -3.0
+            return malus_pioche + _minmax_recursif(
+                main_ia_liste, plateau, pioche_vide, profondeur - 1, False, adv_taille
             )
 
         meilleur = float("-inf")
@@ -182,16 +180,14 @@ def _minmax_recursif(main_ia_liste, plateau, pioche_vide, profondeur, est_tour_i
                 continue
             nouvelle_main = [x for i, x in enumerate(main_ia_liste) if i != idx]
             score = _minmax_recursif(
-                nouvelle_main, p_suivant, pioche_vide, profondeur - 1, False, adv_taille, pioche
+                nouvelle_main, p_suivant, pioche_vide, profondeur - 1, False, adv_taille
             )
             if score > meilleur:
                 meilleur = score
-        return meilleur if meilleur != float("-inf") else _evaluer_etat_minmax(
-            main_ia_liste, adv_taille, pioche_vide, False
-        )
+        return meilleur
 
     else:
-        candidats_adv = _dominos_adverses_supposes(main_ia_liste, plateau, pioche)
+        candidats_adv = _dominos_adverses_supposes(main_ia_liste, plateau, limite=10)
         coups_adv = []
         for dom in candidats_adv:
             p_suivant = _simuler_coup_minmax(plateau, dom)
@@ -199,31 +195,44 @@ def _minmax_recursif(main_ia_liste, plateau, pioche_vide, profondeur, est_tour_i
                 coups_adv.append(p_suivant)
 
         if not coups_adv:
-            nouvelle_adv_taille = adv_taille if pioche_vide else max(1, adv_taille - 1)
+            nouvelle_adv_taille = adv_taille if pioche_vide else adv_taille + 1
             return _minmax_recursif(
-                main_ia_liste, plateau, pioche_vide, profondeur - 1, True, nouvelle_adv_taille, pioche
+                main_ia_liste, plateau, pioche_vide, profondeur - 1, True, nouvelle_adv_taille
             )
 
-        pire = float("inf")
+        # Problème 2 : moyenne pondérée au lieu du pire cas absolu (évite la paranoïa)
+        somme_scores = 0.0
+        pire_score = float("inf")
         for p_suivant in coups_adv:
             nouvelle_adv_taille = max(0, adv_taille - 1)
             score = _minmax_recursif(
-                main_ia_liste, p_suivant, pioche_vide, profondeur - 1, True, nouvelle_adv_taille, pioche
+                main_ia_liste, p_suivant, pioche_vide, profondeur - 1, True, nouvelle_adv_taille
             )
-            if score < pire:
-                pire = score
-        return pire
+            somme_scores += score
+            if score < pire_score:
+                pire_score = score
+
+        moyenne = somme_scores / len(coups_adv)
+        # Mélange 70% moyenne / 30% pire cas pour rester prudent sans être paralysé
+        return 0.7 * moyenne + 0.3 * pire_score
 
 
-def ia_minmax(main_ia, PLATEAU, PIOCHE=None, profondeur=None):
-    prof = M if profondeur is None and "M" in globals() else (profondeur if profondeur is not None else 3)
+def ia_minmax(main_ia, PLATEAU, PIOCHE=None, profondeur=None, adv_taille=None):
+    prof = profondeur if profondeur is not None else 3
     indices_jouables = main_ia.numeros_jouables(PLATEAU)
 
     if len(indices_jouables) == 0:
         return -1
 
     pioche_vide = True if PIOCHE is None else PIOCHE.est_vide()
-    adv_taille_init = M if "M" in globals() else len(main_ia.liste)
+
+    if adv_taille is not None:
+        adv_taille_init = adv_taille
+    else:
+        max_val = P if "P" in globals() else 6
+        total_dominos = (max_val + 1) * (max_val + 2) // 2
+        nb_pioche = len(PIOCHE.liste) if (PIOCHE is not None and hasattr(PIOCHE, "liste")) else 0
+        adv_taille_init = max(1, total_dominos - len(main_ia.liste) - len(PLATEAU.dominos) - nb_pioche)
 
     meilleur_indice = indices_jouables[0]
     meilleure_val = float("-inf")
@@ -241,7 +250,6 @@ def ia_minmax(main_ia, PLATEAU, PIOCHE=None, profondeur=None):
             prof - 1,
             est_tour_ia=False,
             adv_taille=adv_taille_init,
-            pioche=PIOCHE,
         )
         if val > meilleure_val:
             meilleure_val = val
