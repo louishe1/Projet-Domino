@@ -6,8 +6,6 @@ from Classes import Domino
 from Classes import Plateau
 import random
 
-from TP_Calcul_Scientifique.Dominos.Classes import Plateau
-
 
 def plus_grand_numero () :
     return( int( input("Donner le chiffre entier positif maximal sur les dominos.") ) )
@@ -119,31 +117,83 @@ def ia_gloutonne(main_ia,PLATEAU) :
 ############# fonction qui montre sa main et ses jouables et le plateau au joueur
 # et qui joue
 # le domino choisi sur le coté choisi ######################
-def jeu_joueur(MAIN,PLATEAU) :
+
+
+def jeu_joueur(MAIN,PLATEAU,PIOCHE) :
     print("*********************************************************")
     print("Plateau :   ", PLATEAU)
     print("Main :   ", MAIN.afficher_main())
-    print("Numéros des dominos jouables:   ",MAIN.numeros_jouables(PLATEAU))
-    indice  = int(input("entrer le numéro du domino que vous voulez jouer : "))
-    PLATEAU.jouer_domino_table(MAIN.liste[indice])
-    MAIN.retirer(MAIN.liste[indice])
+    jouables = MAIN.numeros_jouables(PLATEAU)
+    print("Numéros des dominos jouables:   ",jouables)
 
-def jeu_IA(MAIN,PLATEAU,MODE_IA) :
+    if len(jouables) > 0:
+        indice = int(input("Entrer le numéro du domino que vous voulez jouer : "))
+        domino_choisi = MAIN.liste[indice]
+        PLATEAU.jouer_domino_table(domino_choisi)
+        MAIN.retirer(domino_choisi)
+    elif len(PIOCHE) > 0:
+        print("Aucun domino jouable, vous piochez !")
+        domino_pioche = PIOCHE.piocher_rdm()
+        MAIN.piocher(domino_pioche)
+
+
+def jeu_IA(MAIN,PLATEAU,MODE_IA,PIOCHE) :
     indice = 0
     if MODE_IA == 0 :
         indice = ia_aleatoire(MAIN,PLATEAU)
     elif MODE_IA == 1 :
         indice = ia_gloutonne(MAIN,PLATEAU)
     #### à rajouter : ia minmax
-    PLATEAU.jouer_domino_table(MAIN.liste[indice])
-    MAIN.retirer(MAIN.liste[indice])
 
+    jouables = MAIN.numeros_jouables(PLATEAU)
+
+    if len(jouables) > 0:
+        indice = 0
+        if MODE_IA == 0:
+            indice = ia_aleatoire(MAIN, PLATEAU)
+        elif MODE_IA == 1:
+            indice = ia_gloutonne(MAIN, PLATEAU)
+        domino_choisi = MAIN.liste[indice]
+        PLATEAU.jouer_domino_table(domino_choisi)
+        MAIN.retirer(domino_choisi)
+
+    elif not PIOCHE.est_vide():
+        print("L'IA pioche.")
+        domino_pioche = PIOCHE.piocher_rdm()
+        MAIN.piocher(domino_pioche)
 
 
 PLATEAU = Plateau()
 
-JOUEUR_ACTIF = premier_joueur(DICO_MAINS)[0]               # donne celui qui commence
+JOUEUR_DEPART = premier_joueur(DICO_MAINS)[0]               # donne celui qui commence
 PLATEAU.jouer_domino_table(premier_joueur(DICO_MAINS)[1])  #oblige a jouer le premier coup
 
 COMPTEUR_DIMPOSSIBILITE = 0   # incrementé si qqn ne peut ni jouer ni piocher sinon remit a zero
 LISTE_JOUEUR_ACTIF = [Domino(-1,-1)]   # sert a verifier si la liste du joueur actif est vide
+
+ordre_joueurs = list(DICO_MAINS.keys())
+index_depart = ordre_joueurs.index(JOUEUR_DEPART)
+tour = 1  # on a forcé le joueur de depart a jouer
+
+while COMPTEUR_DIMPOSSIBILITE < N and len(LISTE_JOUEUR_ACTIF) != 0 :
+
+    index_actuel = (index_depart + tour) % len(ordre_joueurs)  #index va de 0 à N-1
+    nom_joueur = ordre_joueurs[index_actuel]
+    main_actuelle = DICO_MAINS[nom_joueur]
+
+    print(f"*** TOUR DE {nom_joueur} ***")
+
+    ################  TOUR DE JEU IA OU HUMAIN ###############
+
+    if nom_joueur.startswith("Joueur"):             # Logique pour faire jouer un humain
+        jeu_joueur(main_actuelle,PLATEAU,PIOCHE)
+    else:                                           # Logique automatique pour l'IA
+        jeu_IA(main_actuelle,PLATEAU,MODE_IA,PIOCHE)
+
+    # MISE A JOUR DE LA LISTE ACTIVE ET DU COMPTEUR
+
+    # Passage au joueur suivant
+    tour += 1
+
+
+
