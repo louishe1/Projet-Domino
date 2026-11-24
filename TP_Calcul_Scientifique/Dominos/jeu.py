@@ -22,7 +22,7 @@ def nb_participants() :
 def liste_type_IA(r) : #r est le nb d'ia
     c,L = -1,[]
     for i in range(r) :
-        c = int(input("Choisissez le type d'IA : tapez 0 pour l'IA aléatoire, tapez 1 pour l'IA gloutonne ou tapez 3 pour l'IA minmax"))
+        c = int(input("Choisissez le type d'IA : tapez 0 pour l'IA aléatoire, tapez 1 pour l'IA gloutonne ou tapez 2 pour l'IA minmax"))
         while c != 0 and c != 1 and c != 2 :
             c = int(input("Recommencez avec 0,1 ou 2."))
         L.append(c)
@@ -69,10 +69,11 @@ def maximum(Main) :
 def premier_joueur(D) :
     MAXI, JOUEUR, DOMINO_MAX= -1,None,None
     for l in D.keys() :
-        if Domino.valeur(maximum(D[l])) > MAXI and Domino.est_un_double(maximum(D[l])) :
-            MAXI = Domino.valeur(maximum(D[l]))
-            JOUEUR = l
-            DOMINO_MAX = maximum(D[l])
+        for d in D[l].liste :
+            if Domino.valeur(d) > MAXI and Domino.est_un_double(d) :
+                MAXI = Domino.valeur(d)
+                JOUEUR = l
+                DOMINO_MAX = d
     if MAXI >= 0:
         return([JOUEUR,DOMINO_MAX])
     else :
@@ -122,9 +123,11 @@ def ia_gloutonne(main_ia,PLATEAU) :
 def jeu_joueur(MAIN,PLATEAU,PIOCHE) :
     print("*********************************************************")
     print("Plateau :   ", PLATEAU)
+    print("*********************************************************")
     print("Main :   ", MAIN.afficher_main())
     jouables = MAIN.numeros_jouables(PLATEAU)
     print("Numéros des dominos jouables:   ",jouables)
+    print("*********************************************************")
 
     if len(jouables) > 0:
         indice = int(input("Entrer le numéro du domino que vous voulez jouer : "))
@@ -132,7 +135,7 @@ def jeu_joueur(MAIN,PLATEAU,PIOCHE) :
         PLATEAU.jouer_domino_table(domino_choisi)
         MAIN.retirer(domino_choisi)
         return("ok")
-    elif len(PIOCHE) > 0:
+    elif not PIOCHE.est_vide() :
         print("Aucun domino jouable, vous piochez !")
         domino_pioche = PIOCHE.piocher_rdm()
         MAIN.piocher(domino_pioche)
@@ -143,12 +146,6 @@ def jeu_joueur(MAIN,PLATEAU,PIOCHE) :
 
 
 def jeu_IA(MAIN,PLATEAU,MODE_IA,PIOCHE) :
-    indice = 0
-    if MODE_IA == 0 :
-        indice = ia_aleatoire(MAIN,PLATEAU)
-    elif MODE_IA == 1 :
-        indice = ia_gloutonne(MAIN,PLATEAU)
-    #### à rajouter : ia minmax
 
     jouables = MAIN.numeros_jouables(PLATEAU)
 
@@ -158,6 +155,8 @@ def jeu_IA(MAIN,PLATEAU,MODE_IA,PIOCHE) :
             indice = ia_aleatoire(MAIN, PLATEAU)
         elif MODE_IA == 1:
             indice = ia_gloutonne(MAIN, PLATEAU)
+        #else:
+         #IA MINMAX
         domino_choisi = MAIN.liste[indice]
         PLATEAU.jouer_domino_table(domino_choisi)
         MAIN.retirer(domino_choisi)
@@ -166,7 +165,7 @@ def jeu_IA(MAIN,PLATEAU,MODE_IA,PIOCHE) :
     elif not PIOCHE.est_vide():
         print("L'IA pioche.")
         domino_pioche = PIOCHE.piocher_rdm()
-        MAIN.piocher(domino_pioche
+        MAIN.piocher(domino_pioche)
         return("ok")
     else :
         print("L'IA passe son tour.")
@@ -177,33 +176,47 @@ PLATEAU = Plateau()
 
 JOUEUR_DEPART = premier_joueur(DICO_MAINS)[0]               # donne celui qui commence
 PLATEAU.jouer_domino_table(premier_joueur(DICO_MAINS)[1])  #oblige a jouer le premier coup
+DICO_MAINS[JOUEUR_DEPART].retirer(premier_joueur(DICO_MAINS)[1])
 
 COMPTEUR_DIMPOSSIBILITE = 0   # incrementé si qqn ne peut ni jouer ni piocher sinon remit a zero
-LISTE_JOUEUR_ACTIF = [Domino(-1,-1)]   # sert a verifier si la liste du joueur actif est vide
+main_actuelle_liste = [Domino(-1,-1)]   # sert a verifier si la liste du joueur actif est vide
 
 ordre_joueurs = list(DICO_MAINS.keys())
 index_depart = ordre_joueurs.index(JOUEUR_DEPART)
+
+
 tour = 1  # on a forcé le joueur de depart a jouer
 
-while COMPTEUR_DIMPOSSIBILITE < N and len(LISTE_JOUEUR_ACTIF) != 0 :
+while COMPTEUR_DIMPOSSIBILITE < N and len(main_actuelle_liste) != 0 :
 
     index_actuel = (index_depart + tour) % len(ordre_joueurs)  #index va de 0 à N-1
     nom_joueur = ordre_joueurs[index_actuel]
     main_actuelle = DICO_MAINS[nom_joueur]
+    main_actuelle_liste = DICO_MAINS[nom_joueur].liste #en liste pour condition d'arret
 
     print(f"*** TOUR DE {nom_joueur} ***")
 
     ################  TOUR DE JEU IA OU HUMAIN ###############
 
     if nom_joueur.startswith("Joueur"):             # Logique pour faire jouer un humain
-        jeu_joueur(main_actuelle,PLATEAU,PIOCHE)
+        Y = jeu_joueur(main_actuelle,PLATEAU,PIOCHE)
+        if Y == "ok" :
+            COMPTEUR_DIMPOSSIBILITE = 0
+        else :
+            COMPTEUR_DIMPOSSIBILITE += 1
+
     else:                                           # Logique automatique pour l'IA
-        jeu_IA(main_actuelle,PLATEAU,MODE_IA,PIOCHE)
+        Y = jeu_IA(main_actuelle, PLATEAU, L[index_actuel-X], PIOCHE)
+        if Y == "ok":
+            COMPTEUR_DIMPOSSIBILITE = 0
+        else:
+            COMPTEUR_DIMPOSSIBILITE += 1
 
-    # MISE A JOUR DE LA LISTE ACTIVE ET DU COMPTEUR
+    main_actuelle = DICO_MAINS[nom_joueur]
+    main_actuelle_liste = DICO_MAINS[nom_joueur].liste
 
-    # Passage au joueur suivant
     tour += 1
 
-
+print(f"FIN DE PARTIE, {nom_joueur} a gagné !")
+print(DICO_MAINS)
 
