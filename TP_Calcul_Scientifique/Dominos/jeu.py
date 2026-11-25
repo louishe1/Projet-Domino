@@ -339,6 +339,24 @@ if __name__ == "__main__":
         DICO_MAINS[f"IA_{i}"] = Main()
         DICO_MAINS[f"IA_{i}"].initialisation(PIOCHE, M)
 
+    famille = True
+    while famille:
+        famille = False
+        for nom in DICO_MAINS:
+            if DICO_MAINS[nom].test_famille():
+                famille = True
+
+        if famille:
+            print("5 dominos identiques trouvés dans une main, on redistribue.")
+            for nom in DICO_MAINS:
+                for d in DICO_MAINS[nom].liste:
+                    PIOCHE.ajout(d)
+                DICO_MAINS[nom].liste = []
+
+            for i in range(X):
+                DICO_MAINS[f"Joueur_{i}"].initialisation(PIOCHE, M)
+            for i in range(N - X):
+                DICO_MAINS[f"IA_{i}"].initialisation(PIOCHE, M)
     PLATEAU = Plateau()
 
     JOUEUR_DEPART = premier_joueur(DICO_MAINS)[0]
@@ -387,19 +405,38 @@ if __name__ == "__main__":
     print("************* MAINS EN FIN DE PARTIE **************")
     print(DICO_MAINS)
 
+    POINTS_MAIN = {}
+    for k in DICO_MAINS.keys():
+        POINTS_MAIN[k] = 0
+        for j in range(len(DICO_MAINS[k].liste)):
+            POINTS_MAIN[k] += Domino.valeur(DICO_MAINS[k].liste[j])
+
     DICO_SCORE = {}
     for k in DICO_MAINS.keys():
         DICO_SCORE[k] = 0
-        for j in range(len(DICO_MAINS[k].liste)):
-            DICO_SCORE[k] += Domino.valeur(DICO_MAINS[k].liste[j])
-
-    print("************* SCORES EN FIN DE PARTIE **************")
-    print(DICO_SCORE)
 
     print("*********************************************************")
     if len(main_actuelle_liste) == 0:
-        print(f"FIN DE PARTIE, {nom_joueur} a gagné !")
+        somme_autres = 0
+        for k in DICO_MAINS.keys():
+            if k != nom_joueur:
+                somme_autres += POINTS_MAIN[k]
+        DICO_SCORE[nom_joueur] = somme_autres
+        print(f"FIN DE PARTIE, {nom_joueur} a gagné et marque {somme_autres} points !")
     else:
-        print(f"FIN DE PARTIE, {plus_petites_cles(DICO_SCORE)} a gagné !")
+        gagnants = plus_petites_cles(POINTS_MAIN)
+        somme_perdants = 0
+        for k in DICO_MAINS.keys():
+            if k not in gagnants:
+                somme_perdants += POINTS_MAIN[k]
+        for g in gagnants:
+            DICO_SCORE[g] = somme_perdants
+        if len(gagnants) == 1:
+            print(f"FIN DE PARTIE, {gagnants[0]} a gagné et marque {somme_perdants} points !")
+        else:
+            print(f"FIN DE PARTIE, égalité entre {gagnants} : chacun marque {somme_perdants} points !")
+
+    print("************* SCORES MARQUÉS EN FIN DE PARTIE **************")
+    print(DICO_SCORE)
 
 
