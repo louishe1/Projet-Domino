@@ -100,7 +100,7 @@ class DominoIHMManager(QtWidgets.QMainWindow):
     """
     Gère l'interface graphique PyQt6 du jeu de dominos entièrement en code :
     - Vue menu / configuration (paramètres, modes IA, score cible multi-manches)
-    - Vue partie / plateau (manches, scores, mains des humains, masquage des IA)
+    - Vue partie / plateau (redistribution famille, manches, scores, mains des humains)
     """
 
     def __init__(self):
@@ -123,7 +123,8 @@ class DominoIHMManager(QtWidgets.QMainWindow):
 
         self.num_manche = 1
         self.scores_cumules = {}
-        self.tour_index = 0
+        self.index_depart = 0
+        self.tour_index = 1
         self.joueur_courant = None
         self.compteur_blocage = 0
         self.manche_terminee = False
@@ -345,11 +346,7 @@ class DominoIHMManager(QtWidgets.QMainWindow):
         self._preparer_manche()
         self.rafraichir_ihm()
 
-    def _preparer_manche(self):
-        self.plateau = Plateau()
-        self.pioche = Pioche()
-        self.pioche.remplir(self.max_chiffre)
-
+    def _distribuer_mains(self):
         self.dico_mains = {}
         for i in range(self.nb_humains):
             m = Main()
@@ -362,6 +359,28 @@ class DominoIHMManager(QtWidgets.QMainWindow):
             m.initialisation(self.pioche, self.nb_dominos_init)
             self.dico_mains[f"IA_{i}"] = m
 
+    def _preparer_manche(self):
+        self.plateau = Plateau()
+        self.pioche = Pioche()
+        self.pioche.remplir(self.max_chiffre)
+
+        self._distribuer_mains()
+
+        famille = True
+        while famille:
+            famille = False
+            for nom in self.dico_mains:
+                if self.dico_mains[nom].test_famille():
+                    famille = True
+
+            if famille:
+                self.log_message("5 dominos identiques trouvés dans une main, on redistribue.")
+                for nom in self.dico_mains:
+                    for d in self.dico_mains[nom].liste:
+                        self.pioche.ajout(d)
+                    self.dico_mains[nom].liste = []
+                self._distribuer_mains()
+
         self.ordre_joueurs = list(self.dico_mains.keys())
         for nom in self.ordre_joueurs:
             self.scores_cumules.setdefault(nom, 0)
@@ -371,10 +390,10 @@ class DominoIHMManager(QtWidgets.QMainWindow):
         self.plateau.dominos.append(domino_depart)
         self.dico_mains[joueur_depart].retirer(domino_depart)
 
-        index_depart = self.ordre_joueurs.index(joueur_depart)
+        self.index_depart = self.ordre_joueurs.index(joueur_depart)
         self.tour_index = 1
         self.joueur_courant = self.ordre_joueurs[
-            (index_depart + self.tour_index) % len(self.ordre_joueurs)
+            (self.index_depart + self.tour_index) % len(self.ordre_joueurs)
         ]
         self.compteur_blocage = 0
         self.manche_terminee = False
@@ -496,42 +515,56 @@ class DominoIHMManager(QtWidgets.QMainWindow):
     def _cloturer_manche(self, main_courante):
         self.manche_terminee = True
 
-        scores_manche = {
+        points_main = {
             nom: sum(d.valeur() for d in main.liste)
             for nom, main in self.dico_mains.items()
         }
+        scores_manche = {nom: 0 for nom in self.dico_mains}
+
+        if len(main_courante.liste) == 0:
+            somme_autres = sum(
+                pts for nom, pts in points_main.items() if nom != self.joueur_courant
+            )
+            scores_manche[self.joueur_courant] = somme_autres
+            self.log_message(
+                f"FIN DE MANCHE {self.num_manche} : {self.joueur_courant} a gagné et marque {somme_autres} points !"
+            )
+        else:
+            gagnants_manche = plus_petites_cles(points_main)
+            somme_perdants = sum(
+                pts for nom, pts in points_main.items() if nom not in gagnants_manche
+            )
+            for g in gagnants_manche:
+                scores_manche[g] = somme_perdants
+            if len(gagnants_manche) == 1:
+                self.log_message(
+                    f"FIN DE MANCHE {self.num_manche} (blocage) : {gagnants_manche[0]} gagne et marque {somme_perdants} points !"
+                )
+            else:
+                self.log_message(
+                    f"FIN DE MANCHE {self.num_manche} (blocage) : égalité entre {gagnants_manche}, chacun marque {somme_perdants} points !"
+                )
+
         for nom, pts in scores_manche.items():
             self.scores_cumules[nom] = self.scores_cumules.get(nom, 0) + pts
 
-        if len(main_courante.liste) == 0:
-            self.log_message(f"FIN DE MANCHE {self.num_manche} : {self.joueur_courant} a posé tous ses dominos.")
-        else:
-            gagnants_manche = plus_petites_cles(scores_manche)
-            self.log_message(
-                f"FIN DE MANCHE {self.num_manche} (blocage) : plus petit score de manche {gagnants_manche}."
-            )
-
-        self.log_message(f"Scores de la manche {self.num_manche} : {scores_manche}")
+        self.log_message(f"Points marqués manche {self.num_manche} : {scores_manche}")
         self.log_message(f"Scores cumulés : {self.scores_cumules}")
 
-        # Mains des joueurs humains uniquement (les mains des IA restent secrètes)
         for nom, main in self.dico_mains.items():
             if nom.startswith("Joueur"):
                 dominos_str = " ".join(str(d) for d in main.liste) if main.liste else "(aucun domino)"
                 self.log_message(f"Main de {nom} : {dominos_str}")
 
-        # Vérification de la cible du match (somme des scores >= cible)
         joueurs_cible = [
             nom for nom, total in self.scores_cumules.items() if total >= self.cible_score
         ]
         if joueurs_cible:
             self.match_termine = True
-            gagnants_match = plus_petites_cles(self.scores_cumules)
             self.log_message(
                 f"=== FIN DU MATCH (cible {self.cible_score} dépassée par {joueurs_cible}) ==="
             )
             self.log_message(f"Scores finaux du match : {self.scores_cumules}")
-            self.log_message(f"Gagnant(s) du match (plus petit total) : {gagnants_match}")
             for nom, main in self.dico_mains.items():
                 if nom.startswith("Joueur"):
                     dominos_str = " ".join(str(d) for d in main.liste) if main.liste else "(aucun domino)"
@@ -547,7 +580,7 @@ class DominoIHMManager(QtWidgets.QMainWindow):
         else:
             self.tour_index += 1
             self.joueur_courant = self.ordre_joueurs[
-                self.tour_index % len(self.ordre_joueurs)
+                (self.index_depart + self.tour_index) % len(self.ordre_joueurs)
             ]
 
         self.indice_domino_selectionne = None
