@@ -402,7 +402,9 @@ class DominoIHMManager(QtWidgets.QMainWindow):
         self.label_cote.setText("Côté : Droite")
 
         self.log_message(
-            f"[Manche {self.num_manche}] {joueur_depart} pose {domino_depart}. Tour de {self.joueur_courant}."
+            f"[Manche {self.num_manche}] {joueur_depart} pose {domino_depart}. "
+            f"Il lui reste {len(self.dico_mains[joueur_depart].liste)} dominos dans sa main. "
+            f"Tour de {self.joueur_courant}."
         )
 
     def definir_cote(self, cote):
@@ -454,7 +456,9 @@ class DominoIHMManager(QtWidgets.QMainWindow):
 
         main_joueur.retirer(domino)
         self.compteur_blocage = 0
-        self.log_message(f"{self.joueur_courant} joue {domino}.")
+        self.log_message(
+            f"{self.joueur_courant} joue {domino}. Il lui reste {len(main_joueur.liste)} dominos dans sa main."
+        )
         self._avancer_apres_action(main_joueur)
 
     def action_joueur_piocher(self):
@@ -471,10 +475,14 @@ class DominoIHMManager(QtWidgets.QMainWindow):
             if isinstance(pio, Domino):
                 main_joueur.piocher(pio)
                 self.compteur_blocage = 0
-                self.log_message(f"{self.joueur_courant} pioche {pio}.")
+                self.log_message(
+                    f"{self.joueur_courant} pioche {pio}. Il lui reste {len(main_joueur.liste)} dominos dans sa main."
+                )
         else:
             self.compteur_blocage += 1
-            self.log_message(f"{self.joueur_courant} passe son tour (pioche vide).")
+            self.log_message(
+                f"{self.joueur_courant} passe son tour (pioche vide). Il lui reste {len(main_joueur.liste)} dominos dans sa main."
+            )
 
         self._avancer_apres_action(main_joueur)
 
@@ -499,16 +507,22 @@ class DominoIHMManager(QtWidgets.QMainWindow):
             self.plateau.jouer_domino_table_ia(domino, mode_ia)
             main_ia.retirer(domino)
             self.compteur_blocage = 0
-            self.log_message(f"{self.joueur_courant} joue {domino}.")
+            self.log_message(
+                f"{self.joueur_courant} joue {domino}. Il lui reste {len(main_ia.liste)} dominos dans sa main."
+            )
         elif not self.pioche.est_vide():
             pio = self.pioche.piocher_rdm()
             if isinstance(pio, Domino):
                 main_ia.piocher(pio)
                 self.compteur_blocage = 0
-                self.log_message(f"{self.joueur_courant} pioche un domino.")
+                self.log_message(
+                    f"{self.joueur_courant} pioche un domino. Il lui reste {len(main_ia.liste)} dominos dans sa main."
+                )
         else:
             self.compteur_blocage += 1
-            self.log_message(f"{self.joueur_courant} passe son tour.")
+            self.log_message(
+                f"{self.joueur_courant} passe son tour. Il lui reste {len(main_ia.liste)} dominos dans sa main."
+            )
 
         self._avancer_apres_action(main_ia)
 
